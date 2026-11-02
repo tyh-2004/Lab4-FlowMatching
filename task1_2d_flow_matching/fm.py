@@ -47,7 +47,7 @@ class FMScheduler(nn.Module):
         # DO NOT change the code outside this part.
         # compute psi_t(x)
 
-        psi_t = (1 - t) * x + t * x1
+        psi_t = (1 - (1 - self.sigma_min) * t) * x + t * x1
         ######################
 
         return psi_t
@@ -94,7 +94,7 @@ class FlowMatching(nn.Module):
         # DO NOT change the code outside this part.
         # Implement the CFM objective.
         xt = self.fm_scheduler.compute_psi_t(x1, t, x0)
-        target_velocity = x1 - x0
+        target_velocity = x1 - (1 - self.fm_scheduler.sigma_min) * x0
         if class_label is not None:
             model_out = self.network(xt, t, class_label=class_label)
         else:
