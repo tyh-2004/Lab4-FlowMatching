@@ -47,7 +47,7 @@ class FMScheduler(nn.Module):
         # DO NOT change the code outside this part.
         # compute psi_t(x)
 
-        psi_t = x1
+        psi_t = (1 - t) * x + t * x1
         ######################
 
         return psi_t
@@ -61,7 +61,7 @@ class FMScheduler(nn.Module):
         ######## TODO ########
         # DO NOT change the code outside this part.
         # implement each step of the first-order Euler method.
-        x_next = xt
+        x_next = xt + dt * vt
         ######################
 
         return x_next
@@ -93,12 +93,14 @@ class FlowMatching(nn.Module):
         ######## TODO ########
         # DO NOT change the code outside this part.
         # Implement the CFM objective.
+        xt = self.fm_scheduler.compute_psi_t(x1, t, x0)
+        target_velocity = x1 - x0
         if class_label is not None:
-            model_out = self.network(x1, t, class_label=class_label)
+            model_out = self.network(xt, t, class_label=class_label)
         else:
-            model_out = self.network(x1, t)
+            model_out = self.network(xt, t)
 
-        loss = x1.mean()
+        loss = F.mse_loss(model_out, target_velocity)
         ######################
 
         return loss
@@ -143,7 +145,18 @@ class FlowMatching(nn.Module):
             ######## TODO ########
             # Complete the sampling loop
 
-            xt = self.fm_scheduler.step(xt, torch.zeros_like(xt), torch.zeros_like(t))
+            dt = expand_t(t_next - t, xt)
+            if do_classifier_free_guidance:
+                v_cond = self.network(xt, t, class_label=class_label)
+                null_labels = torch.zeros_like(class_label)
+                v_uncond = self.network(xt, t, class_label=null_labels)
+                vt = v_uncond + guidance_scale * (v_cond - v_uncond)
+            elif class_label is not None:
+                vt = self.network(xt, t, class_label=class_label)
+            else:
+                vt = self.network(xt, t)
+
+            xt = self.fm_scheduler.step(xt, vt, dt)
 
             ######################
 
