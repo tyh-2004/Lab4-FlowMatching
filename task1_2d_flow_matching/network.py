@@ -83,7 +83,22 @@ class SimpleNet(nn.Module):
 
         ######## TODO ########
         # DO NOT change the code outside this part.
-
+        # 建立一個模組列表 (ModuleList) 來儲存我們所有的隱藏層
+        self.hidden_layers = nn.ModuleList()
+        
+        # 將「輸入維度」與「所有隱藏層維度」合併成一個列表，方便後續使用迴圈建立網路
+        dims = [dim_in] + dim_hids
+        
+        # 使用迴圈依序建立每一層隱藏層
+        for i in range(len(dims) - 1):
+            # TimeLinear 是上方定義的類別，它會同時處理空間特徵與時間嵌入 (Time Embedding)
+            # 設定每一層的輸入維度與輸出維度
+            self.hidden_layers.append(
+                TimeLinear(dims[i], dims[i+1], num_timesteps)
+            )
+            
+        # 建立最後的輸出層，將最後一個隱藏層的維度轉換為我們目標的輸出維度 (dim_out)
+        self.output_layer = TimeLinear(dims[-1], dim_out, num_timesteps)
         ######################
         
     def forward(self, x: torch.Tensor, t: torch.Tensor):
@@ -97,6 +112,9 @@ class SimpleNet(nn.Module):
         """
         ######## TODO ########
         # DO NOT change the code outside this part.
+        for layer in self.hidden_layers:
+            x = F.silu(layer(x, t))
 
+        x = self.output_layer(x, t)
         ######################
         return x
