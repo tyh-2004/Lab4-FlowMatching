@@ -112,6 +112,8 @@ class SimpleNet(nn.Module):
         """
         ######## TODO ########
         # DO NOT change the code outside this part.
+        # FM: t∈[0,1) → DDPM scale, so sinusoidal embedding is informative
+        t = t * 1000  
         for layer in self.hidden_layers:
             x = F.silu(layer(x, t))
 
