@@ -54,7 +54,7 @@ class FMScheduler(nn.Module):
         # Hint: The interpolation formula is x_t = (1-t) * x_0 + t * x_1
         # where 'x' is x_0 (noise) and 'x1' is the data sample.
         
-        psi_t = (1 - (1 - self.sigma_min) * t) * x + t * x1
+        psi_t = (1 - t) * x + t * x1
         ######################
 
         return psi_t
@@ -131,9 +131,10 @@ class FlowMatching(nn.Module):
         # 5. Calculate the loss: MSE between predicted and target velocity
         #    Hint: use .pow(2).mean()
 
+        # get_loss
         t_ = t.view(-1, *([1] * (x1.dim() - 1)))
-        x_t = (1 - (1 - self.fm_scheduler.sigma_min) * t_) * x0 + t_ * x1
-        u_t = x1 - (1 - self.fm_scheduler.sigma_min) * x0
+        x_t = (1 - t_) * x0 + t_ * x1
+        u_t = x1 - x0
         if class_label is not None:
             model_out = self.network(x_t, t, class_label=class_label)
         else:
