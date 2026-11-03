@@ -83,7 +83,15 @@ def main(args):
         # Use fm.sample() or manually implement the ODE integration
         # to generate z_1 from x_0
 
-        z_1 = x_0  # Replace this with actual generation
+        z_1 = fm.sample(
+            shape,
+            num_inference_timesteps=args.num_inference_steps,
+            return_traj=False,
+            class_label=labels,
+            guidance_scale=args.cfg_scale if args.use_cfg else 1.0,
+            verbose=False,
+            x0=x_0,
+        )
 
         ######################
 
