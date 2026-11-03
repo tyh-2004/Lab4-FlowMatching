@@ -69,6 +69,7 @@ def main(args):
 
         # Sample initial noise
         shape = (B, 3, fm.image_resolution, fm.image_resolution)
+        # Generate initial noise with a standard Gaussian distribution
         x_0 = torch.randn(shape).to(device)
 
         # Sample class labels if using CFG
@@ -82,7 +83,7 @@ def main(args):
         # TODO: Complete this section
         # Use fm.sample() or manually implement the ODE integration
         # to generate z_1 from x_0
-
+        # Integrate along the ODE trajectory starting from a given x_0 up to t=1 to obtain the generated result z_1
         z_1 = fm.sample(
             shape,
             num_inference_timesteps=args.num_inference_steps,
